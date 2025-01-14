@@ -17,3 +17,14 @@ jobs:
           path: |
             src
             !src/**/*.md
+
+  download:
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: test
+    steps:
+      - name: Download artifact from test job
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-without-markdown
+          path: download
