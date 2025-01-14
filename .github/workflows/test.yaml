@@ -35,6 +35,9 @@ jobs:
             echo "This is a dummy file" > download/abc.txt
           fi
 
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
       - name: Commit and push abc.txt to the repository
         run: |
           git config --global user.name "github-actions"
