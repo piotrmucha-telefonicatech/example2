@@ -4,56 +4,122 @@ on:
     pull_request:
         branches: ["main"]
 jobs:
-  test:
+  GenerateInitialROCRATE:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
         
-      - name: Archive production artifacts
+      - name: Upload ro-crate artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist-without-markdown
+          name: inital-ro-crate
           path: |
-            src
+            bagit
             !src/**/*.md
 
-  download:
+  ValidateROCRATE:
     runs-on: ubuntu-latest
-    environment: dev
-    needs: test
+    environment: InitialApprovalGate
+    needs: GenerateInitialROCRATE
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Download artifact from test job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: dist-without-markdown
+          name: inital-ro-crate
           path: download
         
       - name: Add dummy file if not exists
         run: |
           if [ ! -f download/abc.txt ]; then
-            echo "This is a dummy file" > download/abc.txt
-          fi
-
-      - name: Commit and push abc.txt to the repository
-        env:
-          GH_PAT: ${{ secrets.GITHUB_TOKEN  }}
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add download/abc.txt
-          if git diff-index --quiet HEAD; then
-            echo "No changes to commit"
-          else
-            git commit -m "Add dummy file abc.txt"
-            git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} HEAD:main
+            echo "This is a dummy file" > download/validated.txt
           fi
         
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist-without-markdown_new
+          name: validated-ro-crate
+          path: download
+
+  Workflow-Retrieval:
+    runs-on: ubuntu-latest
+    needs: ValidateROCRATE
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: validated-ro-crate
+          path: download
+        
+      - name: Add dummy file if not exists
+        run: |
+          if [ ! -f download/abc.txt ]; then
+            echo "This is a dummy file" > download/validated-ro-crate.txt
+          fi
+        
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: enriched-ro-crate
+          path: download
+
+  SignOff:
+    runs-on: ubuntu-latest
+    environment: SignOff
+    needs: Workflow-Retrieval
+
+  Workflow-Execution:
+    runs-on: ubuntu-latest
+    needs: SignOff
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: enriched-ro-crate
+          path: download
+        
+      - name: Simulate adding the data
+        run: |
+          if [ ! -f download/abc.txt ]; then
+            echo "This is a dummy file" > download/data.txt
+          fi
+        
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged-ro-crate
+          path: download
+
+  Disclosure:
+    runs-on: ubuntu-latest
+    needs: Workflow-Execution
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: packaged-ro-crate
+          path: download
+        
+      - name: Simulate adding the data
+        run: |
+          if [ ! -f download/abc.txt ]; then
+            echo "This is a dummy file" > download/published-ro-crate.txt
+          fi
+        
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-ro-crate
           path: download
