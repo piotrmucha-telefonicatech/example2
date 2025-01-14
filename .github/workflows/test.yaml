@@ -23,6 +23,9 @@ jobs:
     environment: dev
     needs: test
     steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
       - name: Download artifact from test job
         uses: actions/download-artifact@v4
         with:
@@ -34,9 +37,6 @@ jobs:
           if [ ! -f download/abc.txt ]; then
             echo "This is a dummy file" > download/abc.txt
           fi
-
-      - name: Check out the repository
-        uses: actions/checkout@v4
 
       - name: Commit and push abc.txt to the repository
         run: |
