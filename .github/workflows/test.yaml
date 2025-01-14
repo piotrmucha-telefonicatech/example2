@@ -34,6 +34,18 @@ jobs:
           if [ ! -f download/abc.txt ]; then
             echo "This is a dummy file" > download/abc.txt
           fi
+
+      - name: Commit and push abc.txt to the repository
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add download/abc.txt
+          if git diff-index --quiet HEAD; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add dummy file abc.txt"
+            git push origin HEAD:main
+          fi
         
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
