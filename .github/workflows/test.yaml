@@ -73,6 +73,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: SignOff
     needs: Workflow-Retrieval
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
 
   Workflow-Execution:
     runs-on: ubuntu-latest
